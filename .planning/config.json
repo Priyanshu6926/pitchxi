@@ -1,0 +1,20 @@
+{
+  "mode": "interactive",
+  "model_profile": "balanced",
+  "planning": {
+    "tracer_first": true,
+    "verify_loop": true,
+    "reversibility_gates": true
+  },
+  "branching": {
+    "enabled": false,
+    "prefix": "phase-"
+  },
+  "git": {
+    "atomic_commits": true
+  },
+  "project": {
+    "name": "pitchxi",
+    "version": "1.0.0"
+  }
+}
