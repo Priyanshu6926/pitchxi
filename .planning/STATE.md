@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 3 Completed -> Ready for Phase 4: Frontend Core & 2D Squad Builder
-- **Last Action**: Completed Phase 3 (JWT auth, matches & players API, squad submission gate, 39 passing tests, pushed to GitHub)
-- **Next Action**: Run `/gsd-plan-phase 4` to plan Phase 4.
+- **Current Phase**: Phase 4: Frontend Core & 2D Squad Builder (Completed)
+- **Last Action**: Completed Phase 4 implementation (Zustand state management, interactive 2D pitch view, player pool filtering, live isomorphic constraint validation, auth integration)
+- **Next Action**: Plan Phase 5: 3D Interactive Pitch Selector (`/gsd-plan-phase 5`)
 
 ---
 
@@ -31,8 +31,8 @@
 - [x] **Phase 1: Foundation & Data Pipeline** *(Completed)*
 - [x] **Phase 2: Core Algorithm Engine & Tests** *(Completed)*
 - [x] **Phase 3: Backend API & Authentication** *(Completed)*
-- [ ] **Phase 4: Frontend Core & 2D Squad Builder** *(Next)*
-- [ ] **Phase 5: 3D Interactive Pitch Selector**
+- [x] **Phase 4: Frontend Core & 2D Squad Builder** *(Completed)*
+- [ ] **Phase 5: 3D Interactive Pitch Selector** *(Next)*
 - [ ] **Phase 6: Auto-Pick Knapsack Optimizer**
 - [ ] **Phase 7: Scoring Engine & Real-Time Leaderboards**
 - [ ] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment**

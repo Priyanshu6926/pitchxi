@@ -1,4 +1,4 @@
-import { Player, Role, SQUAD_CONSTRAINTS, SquadValidationResult } from './index';
+import { Player, Role, SQUAD_CONSTRAINTS, SquadValidationResult } from './types.js';
 
 export interface ValidateSquadOptions {
   matchTeamAId?: string;
