@@ -16,6 +16,11 @@ interface SquadState {
   teamFilter: string | null;
   searchQuery: string;
 
+  // View Mode & 3D Slot Management
+  viewMode: '2D' | '3D';
+  activeSlotIndex: number | null;
+  assignedSlots: Record<number, string>; // slotIndex -> playerId
+
   // UI state
   isLoadingMatches: boolean;
   isLoadingPlayers: boolean;
@@ -26,6 +31,10 @@ interface SquadState {
   // Actions
   fetchMatches: () => Promise<void>;
   selectMatch: (match: Match) => Promise<void>;
+  setViewMode: (mode: '2D' | '3D') => void;
+  setActiveSlotIndex: (index: number | null) => void;
+  assignPlayerToSlot: (slotIndex: number, player: Player) => void;
+  unassignSlot: (slotIndex: number) => void;
   togglePlayer: (player: Player) => void;
   removePlayer: (playerId: string) => void;
   setCaptain: (playerId: string) => void;
@@ -56,11 +65,100 @@ export const useSquadStore = create<SquadState>((set, get) => ({
   teamFilter: null,
   searchQuery: '',
 
+  viewMode: '2D',
+  activeSlotIndex: null,
+  assignedSlots: {},
+
   isLoadingMatches: false,
   isLoadingPlayers: false,
   isSubmitting: false,
   submitSuccessMessage: null,
   error: null,
+
+  setViewMode: (mode) => set({ viewMode: mode }),
+  setActiveSlotIndex: (index) => set({ activeSlotIndex: index }),
+
+  assignPlayerToSlot: (slotIndex: number, player: Player) => {
+    const { selectedPlayers, assignedSlots, captainId, viceCaptainId } = get();
+
+    // Check if player is already assigned to a different slot
+    const existingSlotIndex = Object.entries(assignedSlots).find(([_, pId]) => pId === player.id)?.[0];
+    if (existingSlotIndex !== undefined && parseInt(existingSlotIndex, 10) !== slotIndex) {
+      set({ error: `${player.name} is already placed in another field position.` });
+      return;
+    }
+
+    // Check if slot currently has a player
+    const currentPlayerIdInSlot = assignedSlots[slotIndex];
+    let newSelected = [...selectedPlayers];
+
+    if (currentPlayerIdInSlot) {
+      // Replace
+      newSelected = newSelected.filter(p => p.id !== currentPlayerIdInSlot);
+    }
+
+    // Check squad size limit (if adding new player)
+    if (!currentPlayerIdInSlot && newSelected.length >= SQUAD_CONSTRAINTS.TOTAL_PLAYERS) {
+      set({ error: 'Squad is full (11 players max). Remove a player to add another.' });
+      return;
+    }
+
+    // Check credit limit
+    const currentCredits = newSelected.reduce((sum, p) => sum + p.creditValue, 0);
+    const newTotalCredits = Math.round((currentCredits + player.creditValue) * 10) / 10;
+    if (newTotalCredits > SQUAD_CONSTRAINTS.MAX_CREDITS) {
+      set({ error: `Selecting ${player.name} (${player.creditValue} cr) exceeds 100 cr budget.` });
+      return;
+    }
+
+    // Check team count
+    const teamCount = newSelected.filter(p => p.teamId === player.teamId).length;
+    if (teamCount >= SQUAD_CONSTRAINTS.MAX_PLAYERS_PER_TEAM) {
+      set({ error: `Cannot select more than 7 players from the same team.` });
+      return;
+    }
+
+    // Add player
+    newSelected.push(player);
+
+    const updatedAssigned = {
+      ...assignedSlots,
+      [slotIndex]: player.id
+    };
+
+    set({
+      selectedPlayers: newSelected,
+      assignedSlots: updatedAssigned,
+      activeSlotIndex: null, // close drawer upon pick
+      error: null
+    });
+
+    // Auto-assign Captain / VC if 11th player
+    if (newSelected.length === 11 && (!captainId || !viceCaptainId)) {
+      const sortedByProj = [...newSelected].sort((a, b) => (b.projectedPoints || 0) - (a.projectedPoints || 0));
+      set({
+        captainId: captainId || sortedByProj[0]?.id || null,
+        viceCaptainId: viceCaptainId || sortedByProj[1]?.id || null
+      });
+    }
+  },
+
+  unassignSlot: (slotIndex: number) => {
+    const { assignedSlots, selectedPlayers, captainId, viceCaptainId } = get();
+    const playerId = assignedSlots[slotIndex];
+    if (!playerId) return;
+
+    const newAssigned = { ...assignedSlots };
+    delete newAssigned[slotIndex];
+
+    set({
+      assignedSlots: newAssigned,
+      selectedPlayers: selectedPlayers.filter(p => p.id !== playerId),
+      captainId: captainId === playerId ? null : captainId,
+      viceCaptainId: viceCaptainId === playerId ? null : viceCaptainId,
+      error: null
+    });
+  },
 
   fetchMatches: async () => {
     set({ isLoadingMatches: true, error: null });
@@ -180,9 +278,17 @@ export const useSquadStore = create<SquadState>((set, get) => ({
   },
 
   removePlayer: (playerId: string) => {
-    const { selectedPlayers, captainId, viceCaptainId } = get();
+    const { selectedPlayers, assignedSlots, captainId, viceCaptainId } = get();
+    const newAssigned = { ...assignedSlots };
+    for (const [slotKey, pId] of Object.entries(newAssigned)) {
+      if (pId === playerId) {
+        delete newAssigned[Number(slotKey)];
+      }
+    }
+
     set({
       selectedPlayers: selectedPlayers.filter(p => p.id !== playerId),
+      assignedSlots: newAssigned,
       captainId: captainId === playerId ? null : captainId,
       viceCaptainId: viceCaptainId === playerId ? null : viceCaptainId,
       error: null
@@ -215,6 +321,8 @@ export const useSquadStore = create<SquadState>((set, get) => ({
 
   resetSquad: () => set({
     selectedPlayers: [],
+    assignedSlots: {},
+    activeSlotIndex: null,
     captainId: null,
     viceCaptainId: null,
     error: null

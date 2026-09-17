@@ -10,7 +10,7 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarProps) {
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { selectedPlayers, selectedMatch } = useSquadStore();
+  const { selectedPlayers, selectedMatch, viewMode, setViewMode } = useSquadStore();
 
   const totalCredits = selectedPlayers.reduce((sum, p) => sum + p.creditValue, 0);
 
@@ -70,8 +70,37 @@ export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarPr
 
         {/* Right Status & Auth */}
         <div className="flex items-center space-x-3">
+          {/* 2D / 3D View Switcher */}
+          {activeTab === 'pitch' && (
+            <div className="flex items-center bg-slate-950 p-0.5 rounded-xl border border-slate-800 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setViewMode('2D')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === '2D'
+                    ? 'bg-pitch-800 text-pitch-accent border border-pitch-accent/30 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                2D Pitch
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('3D')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  viewMode === '3D'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md font-black'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span>3D Stadium</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              </button>
+            </div>
+          )}
+
           {/* Live Squad Quick Pill */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-pitch-800 border border-slate-800 text-xs">
+          <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-pitch-800 border border-slate-800 text-xs">
             <span className="text-slate-400">Squad:</span>
             <span className={`font-bold ${selectedPlayers.length === 11 ? 'text-emerald-400' : 'text-amber-400'}`}>
               {selectedPlayers.length}/11

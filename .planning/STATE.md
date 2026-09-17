@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 4: Frontend Core & 2D Squad Builder (Completed)
-- **Last Action**: Completed Phase 4 implementation (Zustand state management, interactive 2D pitch view, player pool filtering, live isomorphic constraint validation, auth integration)
-- **Next Action**: Plan Phase 5: 3D Interactive Pitch Selector (`/gsd-plan-phase 5`)
+- **Current Phase**: Phase 5: 3D Interactive Pitch Selector (Completed)
+- **Last Action**: Implemented React Three Fiber & Drei 3D stadium, procedural low-poly pitch (<15k triangles), 11 spatial field slot markers, tap-to-assign floating drawer, bounded OrbitControls, and progressive WebGL 2D fallback.
+- **Next Action**: Plan Phase 6: Auto-Pick Knapsack Optimizer (`/gsd-plan-phase 6`)
 
 ---
 
@@ -32,8 +32,8 @@
 - [x] **Phase 2: Core Algorithm Engine & Tests** *(Completed)*
 - [x] **Phase 3: Backend API & Authentication** *(Completed)*
 - [x] **Phase 4: Frontend Core & 2D Squad Builder** *(Completed)*
-- [ ] **Phase 5: 3D Interactive Pitch Selector** *(Next)*
-- [ ] **Phase 6: Auto-Pick Knapsack Optimizer**
+- [x] **Phase 5: 3D Interactive Pitch Selector** *(Completed)*
+- [ ] **Phase 6: Auto-Pick Knapsack Optimizer** *(Next)*
 - [ ] **Phase 7: Scoring Engine & Real-Time Leaderboards**
 - [ ] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment**
 - [ ] **Phase 9: (Stretch) CricAPI Live Match Overlay & ILP Benchmark**

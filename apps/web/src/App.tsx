@@ -4,21 +4,44 @@ import AuthModal from './components/AuthModal';
 import MatchList from './components/MatchList';
 import PlayerPool from './components/PlayerPool';
 import SquadBuilder2D from './components/SquadBuilder2D';
+import { StadiumScene } from './components/3d/StadiumScene';
+import { isWebGLAvailable } from './lib/webgl';
 import { useAuthStore } from './store/useAuthStore';
 import { useSquadStore } from './store/useSquadStore';
-import { Layers, Calendar } from 'lucide-react';
+import { Layers, Calendar, AlertCircle, Sparkles, Send, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const { initialize: initAuth } = useAuthStore();
-  const { fetchMatches, selectedMatch, selectMatch } = useSquadStore();
+  const {
+    fetchMatches,
+    selectedMatch,
+    selectMatch,
+    viewMode,
+    setViewMode,
+    getValidation,
+    submitCurrentSquad,
+    isSubmitting,
+    submitSuccessMessage,
+    error,
+    clearError,
+    clearSuccessMessage
+  } = useSquadStore();
 
   const [activeTab, setActiveTab] = useState<'pitch' | 'matches'>('pitch');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [webGLSupported, setWebGLSupported] = useState(true);
 
   useEffect(() => {
     initAuth();
     fetchMatches();
-  }, [initAuth, fetchMatches]);
+    const hasWebGL = isWebGLAvailable();
+    setWebGLSupported(hasWebGL);
+    if (!hasWebGL && viewMode === '3D') {
+      setViewMode('2D');
+    }
+  }, [initAuth, fetchMatches, viewMode, setViewMode]);
+
+  const validation = getValidation();
 
   return (
     <div className="min-h-screen flex flex-col bg-pitch-900 text-slate-100 selection:bg-pitch-accent selection:text-pitch-900">
@@ -34,7 +57,7 @@ export default function App() {
         {activeTab === 'matches' ? (
           <div className="space-y-6 animate-fade-in">
             <MatchList
-              onSelectMatch={match => {
+              onSelectMatch={(match) => {
                 selectMatch(match);
                 setActiveTab('pitch');
               }}
@@ -42,6 +65,49 @@ export default function App() {
           </div>
         ) : (
           <div className="space-y-6 animate-fade-in">
+            {/* WebGL Fallback Notification if 3D chosen but unsupported */}
+            {!webGLSupported && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  WebGL hardware acceleration is not supported in this environment. PitchXI is running in high-performance 2D progressive fallback mode.
+                </span>
+              </div>
+            )}
+
+            {/* Error & Success Banner */}
+            {error && (
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-400" />
+                  <span>{error}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearError}
+                  className="text-red-400 hover:text-red-200 font-bold ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {submitSuccessMessage && (
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>{submitSuccessMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearSuccessMessage}
+                  className="text-emerald-400 hover:text-emerald-200 font-bold ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Match Context Banner */}
             {selectedMatch && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl glass-panel border border-slate-800 gap-4">
@@ -69,31 +135,69 @@ export default function App() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setActiveTab('matches')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-1.5 self-end sm:self-auto"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-pitch-accent" />
-                  <span>Change Match</span>
-                </button>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    onClick={() => setActiveTab('matches')}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-1.5"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-pitch-accent" />
+                    <span>Change Match</span>
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Split Screen Layout: 2D Pitch Builder (Left) & Player Pool (Right) */}
+            {/* Split Screen Layout: 3D/2D Pitch (Left) & Player Pool (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Left: 2D Pitch Board & Budget Dashboard */}
+              {/* Left Column: 3D Interactive Stadium or 2D Progressive Fallback */}
               <div className="lg:col-span-7 space-y-6">
-                <SquadBuilder2D onOpenAuth={() => setIsAuthOpen(true)} />
+                {viewMode === '3D' && webGLSupported ? (
+                  <div className="space-y-4">
+                    {/* 3D Canvas Scene */}
+                    <StadiumScene />
+
+                    {/* 3D Mode Squad Action Bar */}
+                    <div className="p-4 rounded-2xl glass-panel border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <Sparkles className="w-4 h-4 text-emerald-400" />
+                          <span>3D Lineup Controls</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Rotate the camera to inspect fielding angles. Assign C (2×) and VC (1.5×) on player cards.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={!validation.valid || isSubmitting}
+                        onClick={submitCurrentSquad}
+                        className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-display font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
+                          validation.valid && !isSubmitting
+                            ? 'bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-900 hover:shadow-emerald-500/25 active:scale-95'
+                            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+                        }`}
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>{isSubmitting ? 'Locking Lineup...' : 'Lock & Submit 3D Squad'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <SquadBuilder2D onOpenAuth={() => setIsAuthOpen(true)} />
+                )}
               </div>
 
-              {/* Right: Filterable Player Pool */}
+              {/* Right Column: Filterable Player Pool */}
               <div className="lg:col-span-5 p-5 rounded-3xl glass-panel border border-slate-800 space-y-5 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                   <div className="flex items-center space-x-2">
                     <Layers className="w-4 h-4 text-pitch-accent" />
                     <h2 className="font-display font-extrabold text-white text-sm">Match Player Pool</h2>
                   </div>
-                  <span className="text-[11px] text-slate-400">Tap + to assign to pitch</span>
+                  <span className="text-[11px] text-slate-400">
+                    {viewMode === '3D' ? 'Tap slot in 3D or + here' : 'Tap + to assign to pitch'}
+                  </span>
                 </div>
 
                 <PlayerPool />
