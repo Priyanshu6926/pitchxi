@@ -1,0 +1,135 @@
+// Prisma schema for PitchXI Fantasy Cricket
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  squads       FantasySquad[]
+  leaderboard  LeaderboardEntry[]
+}
+
+model Team {
+  id           String    @id @default(uuid())
+  name         String    @unique
+  shortCode    String    @unique
+  logoUrl      String?
+  primaryColor String?
+  players      Player[]
+  homeMatches  Match[]   @relation("TeamAMatches")
+  awayMatches  Match[]   @relation("TeamBMatches")
+}
+
+model Player {
+  id              String                   @id @default(uuid())
+  name            String
+  teamId          String
+  team            Team                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role            String                   // WK, BAT, ALL, BOWL
+  creditValue     Float                    @default(8.0)
+  photoUrl        String?
+  projectedPoints Float                    @default(40.0)
+  performances    PlayerMatchPerformance[]
+  squads          FantasySquadPlayer[]
+
+  @@index([teamId])
+  @@index([role])
+}
+
+model Match {
+  id           String                   @id @default(uuid())
+  teamAId      String
+  teamBId      String
+  teamA        Team                     @relation("TeamAMatches", fields: [teamAId], references: [id], onDelete: Cascade)
+  teamB        Team                     @relation("TeamBMatches", fields: [teamBId], references: [id], onDelete: Cascade)
+  venue        String
+  matchDate    DateTime
+  status       String                   @default("UPCOMING") // HISTORICAL, UPCOMING, LIVE, COMPLETED
+  source       String                   @default("SEED")     // SEED, LIVE_API
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  performances PlayerMatchPerformance[]
+  squads       FantasySquad[]
+  leaderboard  LeaderboardEntry[]
+
+  @@index([status])
+  @@index([matchDate])
+}
+
+model PlayerMatchPerformance {
+  id           String   @id @default(uuid())
+  playerId     String
+  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  runs         Int      @default(0)
+  ballsFaced   Int      @default(0)
+  fours        Int      @default(0)
+  sixes        Int      @default(0)
+  wickets      Int      @default(0)
+  oversBowled  Float    @default(0.0)
+  runsConceded Int      @default(0)
+  maidens      Int      @default(0)
+  catches      Int      @default(0)
+  stumpings    Int      @default(0)
+  runOuts      Int      @default(0)
+  fantasyPoints Float   @default(0.0)
+
+  @@unique([playerId, matchId])
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model FantasySquad {
+  id                  String               @id @default(uuid())
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId             String
+  match               Match                @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  captainPlayerId     String
+  viceCaptainPlayerId String
+  totalCreditsUsed    Float
+  totalPoints         Float?
+  lockedAt            DateTime             @default(now())
+  players             FantasySquadPlayer[]
+  leaderboardEntry    LeaderboardEntry?
+
+  @@index([matchId])
+  @@index([userId])
+}
+
+model FantasySquadPlayer {
+  squadId  String
+  playerId String
+  squad    FantasySquad @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  player   Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@id([squadId, playerId])
+  @@index([playerId])
+}
+
+model LeaderboardEntry {
+  id          String       @id @default(uuid())
+  matchId     String
+  match       Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  squadId     String       @unique
+  squad       FantasySquad @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rank        Int          @default(0)
+  totalPoints Float        @default(0.0)
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([matchId, squadId])
+  @@index([matchId, rank])
+}

@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Ready for Phase 1: Foundation & Data Pipeline
-- **Last Action**: Project initialized from PRD via `/gsd-new-project`
-- **Next Action**: Run `/gsd-plan-phase 1` to start execution.
+- **Current Phase**: Phase 1: Foundation & Data Pipeline (Plan created, pending approval)
+- **Last Action**: Created Phase 1 plan (`.planning/phases/01-foundation-data-pipeline/01-PLAN.md`)
+- **Next Action**: Execute Phase 1 implementation upon approval
 
 ---
 
