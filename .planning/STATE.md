@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 1: Foundation & Data Pipeline (Plan created, pending approval)
-- **Last Action**: Created Phase 1 plan (`.planning/phases/01-foundation-data-pipeline/01-PLAN.md`)
-- **Next Action**: Execute Phase 1 implementation upon approval
+- **Current Phase**: Phase 1 Completed -> Ready for Phase 2: Core Algorithm Engine & Tests
+- **Last Action**: Completed Phase 1 (Monorepo, Prisma schema, credit valuation, seed pipeline, and frontend scaffolding)
+- **Next Action**: Run `/gsd-plan-phase 2` to plan Phase 2.
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Decision | Selection | Rationale |
 |---|---|---|
-| **Database** | PostgreSQL + Prisma ORM | Relational constraints (join tables, role counts, credit caps) fit domain vastly better than NoSQL/Firestore. |
+| **Database** | PostgreSQL + Prisma ORM (SQLite for local dev) | Relational constraints (join tables, role counts, credit caps) fit domain vastly better than NoSQL/Firestore. Zero-config SQLite for dev. |
 | **Data Strategy** | Seeded Kaggle Historical IPL DB (2008–2024) | Deterministic, zero-dependency demo that never fails in an interview due to rate limits or off-season. |
 | **3D Rendering** | React Three Fiber + Drei | React-declarative WebGL; Drei provides camera controls and `<Html>`-in-3D pins. |
 | **3D Interaction** | Tap-to-assign with 2D picker | High visual appeal without fragile physics drag-and-drop complexity in WebGL. |
@@ -25,8 +25,8 @@
 
 ## Roadmap Progression
 
-- [ ] **Phase 1: Foundation & Data Pipeline** *(Next)*
-- [ ] **Phase 2: Core Algorithm Engine & Tests**
+- [x] **Phase 1: Foundation & Data Pipeline** *(Completed)*
+- [ ] **Phase 2: Core Algorithm Engine & Tests** *(Next)*
 - [ ] **Phase 3: Backend API & Authentication**
 - [ ] **Phase 4: Frontend Core & 2D Squad Builder**
 - [ ] **Phase 5: 3D Interactive Pitch Selector**
@@ -38,6 +38,6 @@
 ---
 
 ## Quick Reference Commands
-- **Start Next Phase**: `/gsd-plan-phase 1`
+- **Start Next Phase**: `/gsd-plan-phase 2`
 - **Check Progress**: `/gsd-progress`
 - **Validate Planning Health**: `/gsd-health`
