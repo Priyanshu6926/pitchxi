@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 1 Completed -> Ready for Phase 2: Core Algorithm Engine & Tests
-- **Last Action**: Completed Phase 1 (Monorepo, Prisma schema, credit valuation, seed pipeline, and frontend scaffolding)
-- **Next Action**: Run `/gsd-plan-phase 2` to plan Phase 2.
+- **Current Phase**: Phase 2 Completed -> Ready for Phase 3: Backend API & Authentication
+- **Last Action**: Completed Phase 2 (Scoring engine pure function, isomorphic squad validator, 26 unit tests passing)
+- **Next Action**: Run `/gsd-plan-phase 3` to plan Phase 3.
 
 ---
 
@@ -14,6 +14,8 @@
 |---|---|---|
 | **Database** | PostgreSQL + Prisma ORM (SQLite for local dev) | Relational constraints (join tables, role counts, credit caps) fit domain vastly better than NoSQL/Firestore. Zero-config SQLite for dev. |
 | **Data Strategy** | Seeded Kaggle Historical IPL DB (2008–2024) | Deterministic, zero-dependency demo that never fails in an interview due to rate limits or off-season. |
+| **Isomorphic Validation**| Shared TypeScript Validator | Identical constraint rules executed on client (UX) and server (security). |
+| **Scoring Engine** | Pure function `calculateFantasyPoints` | Fully testable Dream11-style rules with zero DB dependency. |
 | **3D Rendering** | React Three Fiber + Drei | React-declarative WebGL; Drei provides camera controls and `<Html>`-in-3D pins. |
 | **3D Interaction** | Tap-to-assign with 2D picker | High visual appeal without fragile physics drag-and-drop complexity in WebGL. |
 | **Progressive Enhancement** | WebGL detection + 2D fallback | Ensures accessibility and reliability across all devices/browsers. |
@@ -26,8 +28,8 @@
 ## Roadmap Progression
 
 - [x] **Phase 1: Foundation & Data Pipeline** *(Completed)*
-- [ ] **Phase 2: Core Algorithm Engine & Tests** *(Next)*
-- [ ] **Phase 3: Backend API & Authentication**
+- [x] **Phase 2: Core Algorithm Engine & Tests** *(Completed)*
+- [ ] **Phase 3: Backend API & Authentication** *(Next)*
 - [ ] **Phase 4: Frontend Core & 2D Squad Builder**
 - [ ] **Phase 5: 3D Interactive Pitch Selector**
 - [ ] **Phase 6: Auto-Pick Knapsack Optimizer**
