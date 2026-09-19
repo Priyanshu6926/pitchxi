@@ -134,3 +134,13 @@ export interface AutoPickResponse {
   valid: boolean;
   errors?: string[];
 }
+
+export interface AutoPickResult {
+  squad: Player[];
+  captainId: string;
+  viceCaptainId: string;
+  totalCredits: number;
+  projectedPoints: number;
+  executionTimeMs: number;
+}
+

@@ -8,7 +8,7 @@ import { StadiumScene } from './components/3d/StadiumScene';
 import { isWebGLAvailable } from './lib/webgl';
 import { useAuthStore } from './store/useAuthStore';
 import { useSquadStore } from './store/useSquadStore';
-import { Layers, Calendar, AlertCircle, Sparkles, Send, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Layers, Calendar, AlertCircle, Sparkles, Send, ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
 
 export default function App() {
   const { initialize: initAuth } = useAuthStore();
@@ -24,7 +24,10 @@ export default function App() {
     submitSuccessMessage,
     error,
     clearError,
-    clearSuccessMessage
+    clearSuccessMessage,
+    autoPickCurrentSquad,
+    isOptimizing,
+    optimizerExecutionTime
   } = useSquadStore();
 
   const [activeTab, setActiveTab] = useState<'pitch' | 'matches'>('pitch');
@@ -168,19 +171,37 @@ export default function App() {
                         </p>
                       </div>
 
-                      <button
-                        type="button"
-                        disabled={!validation.valid || isSubmitting}
-                        onClick={submitCurrentSquad}
-                        className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-display font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
-                          validation.valid && !isSubmitting
-                            ? 'bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-900 hover:shadow-emerald-500/25 active:scale-95'
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
-                        }`}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{isSubmitting ? 'Locking Lineup...' : 'Lock & Submit 3D Squad'}</span>
-                      </button>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={autoPickCurrentSquad}
+                          disabled={isOptimizing || !selectedMatch}
+                          className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-display font-extrabold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-lg shadow-emerald-500/20 disabled:opacity-40"
+                          title="Auto-Pick optimal squad using constrained knapsack algorithm"
+                        >
+                          {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                          <span>Auto-Pick</span>
+                          {optimizerExecutionTime !== null && (
+                            <span className="text-[9px] bg-slate-950/40 px-1 py-0.2 rounded text-slate-900 font-extrabold">
+                              {optimizerExecutionTime}ms
+                            </span>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={!validation.valid || isSubmitting}
+                          onClick={submitCurrentSquad}
+                          className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-display font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
+                            validation.valid && !isSubmitting
+                              ? 'bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-900 hover:shadow-emerald-500/25 active:scale-95'
+                              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+                          }`}
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isSubmitting ? 'Locking Lineup...' : 'Lock & Submit 3D Squad'}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (

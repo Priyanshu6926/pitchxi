@@ -234,5 +234,18 @@ describe('PitchXI Backend API Integration Tests (Phase 3)', () => {
       expect(mineRes.body.squads.length).toBeGreaterThanOrEqual(1);
       expect(mineRes.body.squads[0].matchId).toBe(matchId);
     });
+
+    it('computes an optimal valid squad via /api/squads/auto-pick', async () => {
+      const res = await request(app)
+        .post('/api/squads/auto-pick')
+        .send({ matchId });
+
+      expect(res.status).toBe(200);
+      expect(res.body.squad).toHaveLength(11);
+      expect(res.body.captainId).toBeTruthy();
+      expect(res.body.viceCaptainId).toBeTruthy();
+      expect(res.body.totalCredits).toBeLessThanOrEqual(100.0);
+      expect(res.body.executionTimeMs).toBeGreaterThan(0);
+    });
   });
 });

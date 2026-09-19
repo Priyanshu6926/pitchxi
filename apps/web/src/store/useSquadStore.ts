@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Player, Match, Role, FantasySquad, validateSquad, SquadValidationResult, SQUAD_CONSTRAINTS } from '@pitchxi/shared-types';
 import { api } from '../lib/api';
+import { FIELD_SLOTS } from '../components/3d/FieldSlot';
 
 interface SquadState {
   matches: Match[];
@@ -21,6 +22,11 @@ interface SquadState {
   activeSlotIndex: number | null;
   assignedSlots: Record<number, string>; // slotIndex -> playerId
 
+  // Auto-Pick Knapsack State
+  lockedPlayerIds: string[];
+  isOptimizing: boolean;
+  optimizerExecutionTime: number | null;
+
   // UI state
   isLoadingMatches: boolean;
   isLoadingPlayers: boolean;
@@ -35,6 +41,8 @@ interface SquadState {
   setActiveSlotIndex: (index: number | null) => void;
   assignPlayerToSlot: (slotIndex: number, player: Player) => void;
   unassignSlot: (slotIndex: number) => void;
+  toggleLockPlayer: (playerId: string) => void;
+  autoPickCurrentSquad: () => Promise<void>;
   togglePlayer: (player: Player) => void;
   removePlayer: (playerId: string) => void;
   setCaptain: (playerId: string) => void;
@@ -69,6 +77,10 @@ export const useSquadStore = create<SquadState>((set, get) => ({
   activeSlotIndex: null,
   assignedSlots: {},
 
+  lockedPlayerIds: [],
+  isOptimizing: false,
+  optimizerExecutionTime: null,
+
   isLoadingMatches: false,
   isLoadingPlayers: false,
   isSubmitting: false,
@@ -77,6 +89,75 @@ export const useSquadStore = create<SquadState>((set, get) => ({
 
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveSlotIndex: (index) => set({ activeSlotIndex: index }),
+
+  toggleLockPlayer: (playerId: string) => {
+    const { lockedPlayerIds, selectedPlayers, playerPool } = get();
+    const isLocked = lockedPlayerIds.includes(playerId);
+    if (isLocked) {
+      set({ lockedPlayerIds: lockedPlayerIds.filter(id => id !== playerId) });
+    } else {
+      const player = playerPool.find(p => p.id === playerId);
+      if (player && !selectedPlayers.some(p => p.id === playerId)) {
+        if (selectedPlayers.length < SQUAD_CONSTRAINTS.TOTAL_PLAYERS) {
+          get().togglePlayer(player);
+        }
+      }
+      set({ lockedPlayerIds: [...lockedPlayerIds, playerId] });
+    }
+  },
+
+  autoPickCurrentSquad: async () => {
+    const { selectedMatch, lockedPlayerIds } = get();
+    if (!selectedMatch) {
+      set({ error: 'Please select a match before running Auto-Pick.' });
+      return;
+    }
+
+    set({ isOptimizing: true, error: null });
+
+    try {
+      const result = await api.squads.autoPick(selectedMatch.id, lockedPlayerIds);
+
+      // Map squad to 3D field slots based on role
+      const newAssignedSlots: Record<number, string> = {};
+      const usedPlayerIds = new Set<string>();
+
+      // First map default roles to matching slots
+      FIELD_SLOTS.forEach(slot => {
+        const matchingPlayer = result.squad.find(
+          p => p.role === slot.role && !usedPlayerIds.has(p.id)
+        );
+        if (matchingPlayer) {
+          newAssignedSlots[slot.slotIndex] = matchingPlayer.id;
+          usedPlayerIds.add(matchingPlayer.id);
+        }
+      });
+
+      // Then fill any unmapped slots with remaining players
+      const unassignedSquadPlayers = result.squad.filter(p => !usedPlayerIds.has(p.id));
+      FIELD_SLOTS.forEach(slot => {
+        if (!newAssignedSlots[slot.slotIndex] && unassignedSquadPlayers.length > 0) {
+          const nextPlayer = unassignedSquadPlayers.shift()!;
+          newAssignedSlots[slot.slotIndex] = nextPlayer.id;
+        }
+      });
+
+      set({
+        selectedPlayers: result.squad,
+        captainId: result.captainId,
+        viceCaptainId: result.viceCaptainId,
+        assignedSlots: newAssignedSlots,
+        optimizerExecutionTime: result.executionTimeMs,
+        isOptimizing: false,
+        submitSuccessMessage: `Auto-Pick solved optimal squad in ${result.executionTimeMs} ms! ⚡`
+      });
+    } catch (err: any) {
+      set({
+        isOptimizing: false,
+        error: err.message || 'Failed to auto-pick optimal squad.'
+      });
+    }
+  },
 
   assignPlayerToSlot: (slotIndex: number, player: Player) => {
     const { selectedPlayers, assignedSlots, captainId, viceCaptainId } = get();
@@ -323,6 +404,8 @@ export const useSquadStore = create<SquadState>((set, get) => ({
     selectedPlayers: [],
     assignedSlots: {},
     activeSlotIndex: null,
+    lockedPlayerIds: [],
+    optimizerExecutionTime: null,
     captainId: null,
     viceCaptainId: null,
     error: null

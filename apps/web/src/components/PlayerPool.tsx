@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Search, Plus, Check, UserCheck, AlertCircle } from 'lucide-react';
+import { Search, Plus, Check, UserCheck, AlertCircle, Lock, Unlock, Sparkles, Loader2 } from 'lucide-react';
 import { useSquadStore } from '../store/useSquadStore';
 import { Role, Player, SQUAD_CONSTRAINTS } from '@pitchxi/shared-types';
 
@@ -8,6 +8,11 @@ export default function PlayerPool() {
     playerPool,
     selectedPlayers,
     togglePlayer,
+    lockedPlayerIds,
+    toggleLockPlayer,
+    autoPickCurrentSquad,
+    isOptimizing,
+    optimizerExecutionTime,
     roleFilter,
     setRoleFilter,
     teamFilter,
@@ -70,6 +75,49 @@ export default function PlayerPool() {
 
   return (
     <div className="space-y-4">
+      {/* Auto-Pick Algorithm Trigger Banner */}
+      <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-indigo-950/60 border border-emerald-500/30 shadow-lg">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-md">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-display font-extrabold text-xs text-white">Knapsack Auto-Pick</span>
+              {optimizerExecutionTime !== null && (
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ⚡ {optimizerExecutionTime} ms
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400">
+              {lockedPlayerIds.length > 0
+                ? `${lockedPlayerIds.length} player(s) pinned. Fills remaining.`
+                : 'Greedy + Local Search optimal solver'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          disabled={isOptimizing || !selectedMatch}
+          onClick={autoPickCurrentSquad}
+          className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md disabled:opacity-50"
+        >
+          {isOptimizing ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Solving...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Auto-Pick</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Search & Team Filter Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search */}
@@ -160,6 +208,7 @@ export default function PlayerPool() {
       <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
         {filteredPlayers.map(player => {
           const isSelected = selectedIds.has(player.id);
+          const isLocked = lockedPlayerIds.includes(player.id);
           const addCheck = canAddPlayer(player);
           const isDisabled = !isSelected && !addCheck.allowed;
 
@@ -189,6 +238,11 @@ export default function PlayerPool() {
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${roleBadgeColors[player.role]}`}>
                       {player.role}
                     </span>
+                    {isLocked && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-400 border border-amber-400/30 flex items-center gap-0.5">
+                        <Lock className="w-2.5 h-2.5" /> Pinned
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
                     <span>{player.team?.name}</span>
@@ -199,7 +253,7 @@ export default function PlayerPool() {
               </div>
 
               {/* Right Credits & Button */}
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2.5">
                 <div className="text-right">
                   <div className="text-sm font-display font-extrabold text-white">
                     {player.creditValue} <span className="text-[10px] font-normal text-slate-400">cr</span>
@@ -209,6 +263,24 @@ export default function PlayerPool() {
                   )}
                 </div>
 
+                {/* Lock / Pin Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLockPlayer(player.id);
+                  }}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${
+                    isLocked
+                      ? 'bg-amber-400/25 text-amber-400 border border-amber-400/50 shadow-sm'
+                      : 'bg-pitch-800 text-slate-500 hover:text-amber-400 hover:bg-slate-700'
+                  }`}
+                  title={isLocked ? 'Pinned for Auto-Pick (Click to unpin)' : 'Pin player for Auto-Pick'}
+                >
+                  {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                </button>
+
+                {/* Add / Remove Button */}
                 <button
                   type="button"
                   onClick={() => togglePlayer(player)}

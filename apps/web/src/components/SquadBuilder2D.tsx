@@ -23,7 +23,10 @@ export default function SquadBuilder2D({ onOpenAuth }: SquadBuilder2DProps) {
     submitCurrentSquad,
     isSubmitting,
     submitSuccessMessage,
-    clearSuccessMessage
+    clearSuccessMessage,
+    autoPickCurrentSquad,
+    isOptimizing,
+    optimizerExecutionTime
   } = useSquadStore();
 
   const { isAuthenticated } = useAuthStore();
@@ -40,6 +43,16 @@ export default function SquadBuilder2D({ onOpenAuth }: SquadBuilder2DProps) {
     ALL: selectedPlayers.filter(p => p.role === 'ALL'),
     BOWL: selectedPlayers.filter(p => p.role === 'BOWL')
   };
+
+  // Projected Points Total (accounting for Captain 2x and VC 1.5x)
+  const totalProjectedPoints = selectedPlayers.length > 0
+    ? Math.round(
+        selectedPlayers.reduce((sum, p) => {
+          const mult = p.id === captainId ? 2.0 : p.id === viceCaptainId ? 1.5 : 1.0;
+          return sum + (p.projectedPoints || 0) * mult;
+        }, 0) * 10
+      ) / 10
+    : 0;
 
   // Team counts
   const teamACount = selectedMatch
@@ -77,6 +90,26 @@ export default function SquadBuilder2D({ onOpenAuth }: SquadBuilder2DProps) {
 
           <div className="flex items-center space-x-2">
             <button
+              type="button"
+              onClick={autoPickCurrentSquad}
+              disabled={isOptimizing || !selectedMatch}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:brightness-110 transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20 disabled:opacity-40"
+              title="Compute highest projected points valid squad using constrained knapsack algorithm"
+            >
+              {isOptimizing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5" />
+              )}
+              <span>Auto-Pick</span>
+              {optimizerExecutionTime !== null && (
+                <span className="text-[9px] bg-slate-950/40 px-1 py-0.2 rounded text-slate-900 font-extrabold">
+                  {optimizerExecutionTime}ms
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={resetSquad}
               disabled={selectedPlayers.length === 0}
               className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition disabled:opacity-40"
@@ -101,9 +134,16 @@ export default function SquadBuilder2D({ onOpenAuth }: SquadBuilder2DProps) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-medium">
               <span className="text-slate-400">Salary Budget</span>
-              <span className={creditsRemaining < 0 ? 'text-red-400 font-bold' : 'text-slate-200 font-bold'}>
-                {totalCredits} / 100 cr ({creditsRemaining >= 0 ? `${creditsRemaining} left` : 'OVER BUDGET'})
-              </span>
+              <div className="flex items-center gap-2">
+                {totalProjectedPoints > 0 && (
+                  <span className="text-[11px] text-emerald-400 font-bold">
+                    ⚡ {totalProjectedPoints} proj pts
+                  </span>
+                )}
+                <span className={creditsRemaining < 0 ? 'text-red-400 font-bold' : 'text-slate-200 font-bold'}>
+                  {totalCredits} / 100 cr ({creditsRemaining >= 0 ? `${creditsRemaining} left` : 'OVER BUDGET'})
+                </span>
+              </div>
             </div>
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
               <div

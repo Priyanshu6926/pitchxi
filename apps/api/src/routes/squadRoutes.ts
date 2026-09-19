@@ -1,7 +1,8 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { authenticateJwt, AuthenticatedRequest } from '../middleware/authMiddleware';
 import { validateSquad, Player as SharedPlayer, Role } from '@pitchxi/shared-types';
+import { autoPickSquad } from '../services/optimizer';
 
 const router = Router();
 
@@ -238,6 +239,79 @@ router.get('/match/:matchId/my-squad', authenticateJwt, async (req: Authenticate
   } catch (error) {
     console.error('Fetch match my-squad error:', error);
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to check user squad.' });
+  }
+});
+
+/**
+ * POST /api/squads/auto-pick
+ * Runs constrained knapsack optimization to generate an optimal legal squad.
+ * Supports optional lockedPlayerIds array.
+ */
+router.post('/auto-pick', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { matchId, lockedPlayerIds = [] } = req.body;
+
+    if (!matchId || typeof matchId !== 'string') {
+      res.status(400).json({ error: 'Validation Error', message: 'matchId is required.' });
+      return;
+    }
+
+    const match = await prisma.match.findUnique({
+      where: { id: matchId }
+    });
+
+    if (!match) {
+      res.status(404).json({ error: 'Not Found', message: `Match with ID "${matchId}" does not exist.` });
+      return;
+    }
+
+    // Fetch all players for this match
+    const dbPlayers = await prisma.player.findMany({
+      where: {
+        teamId: { in: [match.teamAId, match.teamBId] }
+      },
+      include: {
+        team: true
+      }
+    });
+
+    if (dbPlayers.length < 11) {
+      res.status(400).json({
+        error: 'Insufficient Players',
+        message: 'Insufficient players available for this match to compute an 11-player squad.'
+      });
+      return;
+    }
+
+    // Convert to SharedPlayer
+    const pool: SharedPlayer[] = dbPlayers.map(p => ({
+      id: p.id,
+      name: p.name,
+      teamId: p.teamId,
+      team: p.team ? {
+        id: p.team.id,
+        name: p.team.name,
+        shortCode: p.team.shortCode,
+        logoUrl: p.team.logoUrl || undefined,
+        primaryColor: p.team.primaryColor || undefined
+      } : undefined,
+      role: p.role as Role,
+      creditValue: p.creditValue,
+      projectedPoints: p.projectedPoints
+    }));
+
+    const result = autoPickSquad(pool, lockedPlayerIds);
+
+    res.json({
+      message: 'Optimal squad computed successfully.',
+      ...result
+    });
+  } catch (error: any) {
+    console.error('Auto-pick optimization error:', error);
+    res.status(400).json({
+      error: 'Optimization Error',
+      message: error.message || 'Failed to auto-pick optimal squad.'
+    });
   }
 });
 

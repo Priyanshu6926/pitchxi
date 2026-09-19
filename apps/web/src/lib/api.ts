@@ -1,4 +1,4 @@
-import { Match, Player, FantasySquad, User } from '@pitchxi/shared-types';
+import { Match, Player, FantasySquad, User, AutoPickResult } from '@pitchxi/shared-types';
 
 const BASE_URL = '/api';
 
@@ -74,6 +74,15 @@ export const api = {
   },
 
   squads: {
+    async autoPick(matchId: string, lockedPlayerIds: string[] = []): Promise<AutoPickResult> {
+      const res = await fetch(`${BASE_URL}/squads/auto-pick`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ matchId, lockedPlayerIds })
+      });
+      return handleResponse(res);
+    },
+
     async submit(payload: { matchId: string; playerIds: string[]; captainId: string; viceCaptainId: string }): Promise<{ message: string; squad: FantasySquad }> {
       const res = await fetch(`${BASE_URL}/squads`, {
         method: 'POST',
