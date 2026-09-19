@@ -2,9 +2,9 @@
 
 ## Current Status
 - **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 6: Auto-Pick Knapsack Optimizer (Completed)
-- **Last Action**: Implemented greedy points-per-credit heuristic + local search hill climbing optimizer (<1ms latency), POST /api/squads/auto-pick endpoint, player pinning/locking, and dual 2D/3D UI integration.
-- **Next Action**: Plan Phase 7: Scoring Engine & Real-Time Leaderboards (`/gsd-plan-phase 7`)
+- **Current Phase**: Phase 7: Scoring Engine & Real-Time Leaderboards (Completed)
+- **Last Action**: Implemented idempotent match scoring service, Captain (2x) & VC (1.5x) multipliers, Socket.io real-time broadcast, LeaderboardView with top 3 podium & live standings, and 17 integration tests.
+- **Next Action**: Plan Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment (`/gsd-plan-phase 8`)
 
 ---
 
@@ -21,6 +21,7 @@
 | **3D Interaction** | Tap-to-assign with 2D picker | High visual appeal without fragile physics drag-and-drop complexity in WebGL. |
 | **Progressive Enhancement** | WebGL detection + 2D fallback | Ensures accessibility and reliability across all devices/browsers. |
 | **Auto-Pick Algorithm** | Greedy Ratio + Local Search Hill Climbing | Real-world engineering trade-off: $<25$ ms latency with near-optimal point yield for multi-dimensional knapsack. |
+| **Real-Time Updates** | Socket.io WebSockets | Instant room-based broadcast of rank standings upon scoring calculations without client polling. |
 | **State Management** | Zustand | Lightweight, clean selector ergonomics, zero boilerplate compared to Redux. |
 | **Authentication** | JWT (Access + Refresh) + bcrypt | Demonstrates deep understanding of stateful/stateless auth security. |
 
@@ -34,8 +35,8 @@
 - [x] **Phase 4: Frontend Core & 2D Squad Builder** *(Completed)*
 - [x] **Phase 5: 3D Interactive Pitch Selector** *(Completed)*
 - [x] **Phase 6: Auto-Pick Knapsack Optimizer** *(Completed)*
-- [ ] **Phase 7: Scoring Engine & Real-Time Leaderboards** *(Next)*
-- [ ] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment**
+- [x] **Phase 7: Scoring Engine & Real-Time Leaderboards** *(Completed)*
+- [ ] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment** *(Next)*
 - [ ] **Phase 9: (Stretch) CricAPI Live Match Overlay & ILP Benchmark**
 
 ---

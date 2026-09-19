@@ -4,6 +4,7 @@ import AuthModal from './components/AuthModal';
 import MatchList from './components/MatchList';
 import PlayerPool from './components/PlayerPool';
 import SquadBuilder2D from './components/SquadBuilder2D';
+import LeaderboardView from './components/LeaderboardView';
 import { StadiumScene } from './components/3d/StadiumScene';
 import { isWebGLAvailable } from './lib/webgl';
 import { useAuthStore } from './store/useAuthStore';
@@ -13,6 +14,7 @@ import { Layers, Calendar, AlertCircle, Sparkles, Send, ShieldAlert, CheckCircle
 export default function App() {
   const { initialize: initAuth } = useAuthStore();
   const {
+    matches,
     fetchMatches,
     selectedMatch,
     selectMatch,
@@ -30,7 +32,7 @@ export default function App() {
     optimizerExecutionTime
   } = useSquadStore();
 
-  const [activeTab, setActiveTab] = useState<'pitch' | 'matches'>('pitch');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'matches' | 'leaderboard'>('pitch');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [webGLSupported, setWebGLSupported] = useState(true);
 
@@ -62,6 +64,17 @@ export default function App() {
             <MatchList
               onSelectMatch={(match) => {
                 selectMatch(match);
+                setActiveTab('pitch');
+              }}
+            />
+          </div>
+        ) : activeTab === 'leaderboard' ? (
+          <div className="space-y-6 animate-fade-in">
+            <LeaderboardView
+              initialMatchId={selectedMatch?.id}
+              onNavigateToBuilder={(matchId) => {
+                const targetMatch = matches.find(m => m.id === matchId);
+                if (targetMatch) selectMatch(targetMatch);
                 setActiveTab('pitch');
               }}
             />

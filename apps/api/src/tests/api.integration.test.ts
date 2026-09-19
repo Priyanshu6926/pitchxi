@@ -248,4 +248,50 @@ describe('PitchXI Backend API Integration Tests (Phase 3)', () => {
       expect(res.body.executionTimeMs).toBeGreaterThan(0);
     });
   });
+
+  describe('4. Match Scoring & Real-Time Leaderboards (Phase 7)', () => {
+    it('scores a match idempotently and returns leaderboard metrics', async () => {
+      const scoreRes = await request(app)
+        .post(`/api/matches/${matchId}/score`)
+        .send();
+
+      expect(scoreRes.status).toBe(200);
+      expect(scoreRes.body).toHaveProperty('squadsScored');
+      expect(scoreRes.body.squadsScored).toBeGreaterThanOrEqual(1);
+
+      // Verify idempotency by calling score a second time
+      const repeatRes = await request(app)
+        .post(`/api/matches/${matchId}/score`)
+        .send();
+
+      expect(repeatRes.status).toBe(200);
+      expect(repeatRes.body.squadsScored).toBe(scoreRes.body.squadsScored);
+    });
+
+    it('fetches match leaderboard with rankings and current user marker', async () => {
+      const res = await request(app)
+        .get(`/api/matches/${matchId}/leaderboard`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.matchId).toBe(matchId);
+      expect(res.body.totalParticipants).toBeGreaterThanOrEqual(1);
+      expect(res.body.entries.length).toBeGreaterThanOrEqual(1);
+
+      const topEntry = res.body.entries[0];
+      expect(topEntry.rank).toBe(1);
+      expect(typeof topEntry.totalPoints).toBe('number');
+      expect(topEntry.isCurrentUser).toBe(true);
+      expect(topEntry.captain).toBeTruthy();
+      expect(topEntry.viceCaptain).toBeTruthy();
+    });
+
+    it('returns 404 for scoring or leaderboard on non-existent match', async () => {
+      const scoreRes = await request(app).post('/api/matches/non-existent-id/score');
+      expect(scoreRes.status).toBe(400);
+
+      const lbRes = await request(app).get('/api/matches/non-existent-id/leaderboard');
+      expect(lbRes.status).toBe(404);
+    });
+  });
 });

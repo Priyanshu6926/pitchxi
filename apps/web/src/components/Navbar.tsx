@@ -4,8 +4,8 @@ import { useSquadStore } from '../store/useSquadStore';
 
 interface NavbarProps {
   onOpenAuth: () => void;
-  activeTab: 'pitch' | 'matches';
-  setActiveTab: (tab: 'pitch' | 'matches') => void;
+  activeTab: 'pitch' | 'matches' | 'leaderboard';
+  setActiveTab: (tab: 'pitch' | 'matches' | 'leaderboard') => void;
 }
 
 export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarProps) {
@@ -53,6 +53,17 @@ export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarPr
               }`}
             >
               All Matches
+            </button>
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                activeTab === 'leaderboard'
+                  ? 'bg-pitch-800 text-pitch-accent border border-pitch-accent/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span>Leaderboard</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             </button>
           </nav>
         </div>

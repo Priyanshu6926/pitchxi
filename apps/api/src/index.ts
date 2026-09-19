@@ -1,7 +1,9 @@
+import http from 'http';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './lib/prisma';
+import { initSocketServer } from './lib/socket';
 import authRoutes from './routes/authRoutes';
 import matchRoutes from './routes/matchRoutes';
 import squadRoutes from './routes/squadRoutes';
@@ -9,7 +11,11 @@ import squadRoutes from './routes/squadRoutes';
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
+
+// Initialize Socket.io
+initSocketServer(server);
 
 app.use(cors());
 app.use(express.json());
@@ -79,9 +85,10 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // Start listening if not imported in test suite
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🏏 PitchXI API server running on http://localhost:${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`🏏 PitchXI API server with WebSockets running on http://localhost:${PORT}`);
   });
 }
 
+export { server };
 export default app;

@@ -70,6 +70,46 @@ export const api = {
     async getPlayers(matchId: string): Promise<{ matchId: string; totalAvailable: number; players: Player[] }> {
       const res = await fetch(`${BASE_URL}/matches/${matchId}/players`, { headers: getHeaders() });
       return handleResponse(res);
+    },
+
+    async getLeaderboard(matchId: string): Promise<{
+      matchId: string;
+      match: {
+        id: string;
+        status: string;
+        venue: string;
+        teamA: any;
+        teamB: any;
+      };
+      totalParticipants: number;
+      entries: Array<{
+        id: string;
+        rank: number;
+        totalPoints: number;
+        squadId: string;
+        userId: string;
+        displayName: string;
+        isCurrentUser: boolean;
+        totalCreditsUsed: number;
+        captain: { id: string; name: string; role: string } | null;
+        viceCaptain: { id: string; name: string; role: string } | null;
+      }>;
+    }> {
+      const res = await fetch(`${BASE_URL}/matches/${matchId}/leaderboard`, { headers: getHeaders() });
+      return handleResponse(res);
+    },
+
+    async scoreMatch(matchId: string): Promise<{
+      message: string;
+      matchId: string;
+      squadsScored: number;
+      topEntries: any[];
+    }> {
+      const res = await fetch(`${BASE_URL}/matches/${matchId}/score`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      return handleResponse(res);
     }
   },
 
