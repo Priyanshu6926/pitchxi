@@ -4,8 +4,8 @@ import { useSquadStore } from '../store/useSquadStore';
 
 interface NavbarProps {
   onOpenAuth: () => void;
-  activeTab: 'pitch' | 'matches' | 'leaderboard';
-  setActiveTab: (tab: 'pitch' | 'matches' | 'leaderboard') => void;
+  activeTab: 'pitch' | 'matches' | 'leaderboard' | 'profile';
+  setActiveTab: (tab: 'pitch' | 'matches' | 'leaderboard' | 'profile') => void;
 }
 
 export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarProps) {
@@ -64,6 +64,16 @@ export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarPr
             >
               <span>Leaderboard</span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition ${
+                activeTab === 'profile'
+                  ? 'bg-pitch-800 text-pitch-accent border border-pitch-accent/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Profile
             </button>
           </nav>
         </div>
@@ -125,7 +135,11 @@ export default function Navbar({ onOpenAuth, activeTab, setActiveTab }: NavbarPr
           {/* User Auth Profile */}
           {isAuthenticated && user ? (
             <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg glass-panel border border-slate-700 text-xs">
+              <div 
+                onClick={() => setActiveTab('profile')}
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg glass-panel border border-slate-700 hover:border-emerald-500/40 text-xs cursor-pointer transition-colors"
+                title="View Manager Profile"
+              >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="text-slate-200 font-medium max-w-[100px] truncate">{user.displayName}</span>
               </div>

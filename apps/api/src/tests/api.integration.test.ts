@@ -293,5 +293,21 @@ describe('PitchXI Backend API Integration Tests (Phase 3)', () => {
       const lbRes = await request(app).get('/api/matches/non-existent-id/leaderboard');
       expect(lbRes.status).toBe(404);
     });
+
+    it('fetches user career profile and historical squad submissions via /api/squads/profile', async () => {
+      const res = await request(app)
+        .get('/api/squads/profile')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.user).toHaveProperty('email');
+      expect(res.body.careerStats).toHaveProperty('totalSquads');
+      expect(res.body.careerStats.totalSquads).toBeGreaterThanOrEqual(1);
+      expect(res.body.careerStats).toHaveProperty('totalCareerPoints');
+      expect(res.body.careerStats).toHaveProperty('bestRank');
+      expect(res.body.squadHistory.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.squadHistory[0]).toHaveProperty('totalPoints');
+      expect(res.body.squadHistory[0]).toHaveProperty('match');
+    });
   });
 });

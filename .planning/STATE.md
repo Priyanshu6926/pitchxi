@@ -1,10 +1,10 @@
 # Project State: PitchXI
 
 ## Current Status
-- **Milestone**: MVP 1.0 (Phases 1–8)
-- **Current Phase**: Phase 7: Scoring Engine & Real-Time Leaderboards (Completed)
-- **Last Action**: Implemented idempotent match scoring service, Captain (2x) & VC (1.5x) multipliers, Socket.io real-time broadcast, LeaderboardView with top 3 podium & live standings, and 17 integration tests.
-- **Next Action**: Plan Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment (`/gsd-plan-phase 8`)
+- **Milestone**: MVP 1.0 (Phases 1–8: ALL PHASES COMPLETED)
+- **Current Phase**: Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment (Completed)
+- **Last Action**: Built User Profile & match history dashboard, Playwright automated E2E browser test suite, Dockerfile, render.yaml, vercel.json, and comprehensive portfolio README with architecture & DSA interview cheat sheet.
+- **Next Action**: Project Complete! (Optional Stretch: Phase 9 Live CricAPI overlay & ILP comparison).
 
 ---
 
@@ -22,6 +22,8 @@
 | **Progressive Enhancement** | WebGL detection + 2D fallback | Ensures accessibility and reliability across all devices/browsers. |
 | **Auto-Pick Algorithm** | Greedy Ratio + Local Search Hill Climbing | Real-world engineering trade-off: $<25$ ms latency with near-optimal point yield for multi-dimensional knapsack. |
 | **Real-Time Updates** | Socket.io WebSockets | Instant room-based broadcast of rank standings upon scoring calculations without client polling. |
+| **E2E Testing** | Playwright | Full automated user journey (register -> select match -> auto-pick -> submit -> leaderboard -> profile). |
+| **Deployment** | Docker + Render + Vercel | Multi-stage Dockerfile and cloud manifests for zero-downtime production deployment. |
 | **State Management** | Zustand | Lightweight, clean selector ergonomics, zero boilerplate compared to Redux. |
 | **Authentication** | JWT (Access + Refresh) + bcrypt | Demonstrates deep understanding of stateful/stateless auth security. |
 
@@ -36,7 +38,7 @@
 - [x] **Phase 5: 3D Interactive Pitch Selector** *(Completed)*
 - [x] **Phase 6: Auto-Pick Knapsack Optimizer** *(Completed)*
 - [x] **Phase 7: Scoring Engine & Real-Time Leaderboards** *(Completed)*
-- [ ] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment** *(Next)*
+- [x] **Phase 8: Hardening, E2E Testing, Portfolio Polish & Deployment** *(Completed)*
 - [ ] **Phase 9: (Stretch) CricAPI Live Match Overlay & ILP Benchmark**
 
 ---

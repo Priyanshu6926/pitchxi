@@ -5,6 +5,7 @@ import MatchList from './components/MatchList';
 import PlayerPool from './components/PlayerPool';
 import SquadBuilder2D from './components/SquadBuilder2D';
 import LeaderboardView from './components/LeaderboardView';
+import ProfileView from './components/ProfileView';
 import { StadiumScene } from './components/3d/StadiumScene';
 import { isWebGLAvailable } from './lib/webgl';
 import { useAuthStore } from './store/useAuthStore';
@@ -32,7 +33,7 @@ export default function App() {
     optimizerExecutionTime
   } = useSquadStore();
 
-  const [activeTab, setActiveTab] = useState<'pitch' | 'matches' | 'leaderboard'>('pitch');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'matches' | 'leaderboard' | 'profile'>('pitch');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [webGLSupported, setWebGLSupported] = useState(true);
 
@@ -77,6 +78,22 @@ export default function App() {
                 if (targetMatch) selectMatch(targetMatch);
                 setActiveTab('pitch');
               }}
+            />
+          </div>
+        ) : activeTab === 'profile' ? (
+          <div className="space-y-6 animate-fade-in">
+            <ProfileView
+              onNavigateToLeaderboard={(matchId) => {
+                const targetMatch = matches.find(m => m.id === matchId);
+                if (targetMatch) selectMatch(targetMatch);
+                setActiveTab('leaderboard');
+              }}
+              onNavigateToMatch={(matchId) => {
+                const targetMatch = matches.find(m => m.id === matchId);
+                if (targetMatch) selectMatch(targetMatch);
+                setActiveTab('pitch');
+              }}
+              onOpenAuth={() => setIsAuthOpen(true)}
             />
           </div>
         ) : (

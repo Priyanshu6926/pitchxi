@@ -145,6 +145,32 @@ export const api = {
     async getById(id: string): Promise<{ squad: FantasySquad }> {
       const res = await fetch(`${BASE_URL}/squads/${id}`, { headers: getHeaders() });
       return handleResponse(res);
+    },
+
+    async getProfile(): Promise<{
+      user: { id: string; email: string; displayName: string; createdAt: string };
+      careerStats: {
+        totalSquads: number;
+        totalCareerPoints: number;
+        highestMatchScore: number;
+        averagePoints: number;
+        bestRank: number | null;
+      };
+      squadHistory: Array<{
+        id: string;
+        matchId: string;
+        match: any;
+        totalPoints: number | null;
+        totalCreditsUsed: number;
+        lockedAt: string;
+        rank: number | null;
+        captain: { id: string; name: string; role: string } | null;
+        viceCaptain: { id: string; name: string; role: string } | null;
+        playerCount: number;
+      }>;
+    }> {
+      const res = await fetch(`${BASE_URL}/squads/profile`, { headers: getHeaders() });
+      return handleResponse(res);
     }
   }
 };

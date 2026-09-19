@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { verifyAccessToken } from '../services/authService';
+import { scoreMatch } from '../services/matchScoringService';
 
 const router = Router();
 
@@ -216,8 +217,6 @@ router.get('/:id/leaderboard', async (req: Request, res: Response): Promise<void
 router.post('/:id/score', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { scoreMatch } = await import('../services/matchScoringService');
-
     const result = await scoreMatch(id);
 
     res.json({

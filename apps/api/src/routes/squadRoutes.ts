@@ -211,6 +211,93 @@ router.get('/mine', authenticateJwt, async (req: AuthenticatedRequest, res: Resp
 });
 
 /**
+ * GET /api/squads/profile
+ * Returns user career fantasy metrics, stats, and historical squad submissions.
+ */
+router.get('/profile', authenticateJwt, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, displayName: true, createdAt: true }
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'Not Found', message: 'User not found.' });
+      return;
+    }
+
+    const squads = await prisma.fantasySquad.findMany({
+      where: { userId },
+      include: {
+        match: {
+          include: {
+            teamA: { select: { id: true, name: true, shortCode: true, primaryColor: true } },
+            teamB: { select: { id: true, name: true, shortCode: true, primaryColor: true } }
+          }
+        },
+        players: {
+          include: {
+            player: {
+              select: { id: true, name: true, role: true, creditValue: true }
+            }
+          }
+        },
+        leaderboardEntry: {
+          select: { rank: true, totalPoints: true }
+        }
+      },
+      orderBy: { lockedAt: 'desc' }
+    });
+
+    const totalSquads = squads.length;
+    const totalCareerPoints = squads.reduce((sum, s) => sum + (s.totalPoints || 0), 0);
+    const highestMatchScore = squads.length > 0 ? Math.max(...squads.map(s => s.totalPoints || 0)) : 0;
+    const averagePoints = totalSquads > 0 ? Math.round((totalCareerPoints / totalSquads) * 10) / 10 : 0;
+
+    const allRanks = squads
+      .map(s => s.leaderboardEntry?.rank)
+      .filter((r): r is number => typeof r === 'number');
+    const bestRank = allRanks.length > 0 ? Math.min(...allRanks) : null;
+
+    const squadHistory = squads.map(s => {
+      const captainPlayer = s.players.find(p => p.playerId === s.captainPlayerId)?.player;
+      const viceCaptainPlayer = s.players.find(p => p.playerId === s.viceCaptainPlayerId)?.player;
+      const rank = s.leaderboardEntry?.rank ?? null;
+
+      return {
+        id: s.id,
+        matchId: s.matchId,
+        match: s.match,
+        totalPoints: s.totalPoints,
+        totalCreditsUsed: s.totalCreditsUsed,
+        lockedAt: s.lockedAt,
+        rank,
+        captain: captainPlayer || null,
+        viceCaptain: viceCaptainPlayer || null,
+        playerCount: s.players.length
+      };
+    });
+
+    res.json({
+      user,
+      careerStats: {
+        totalSquads,
+        totalCareerPoints: Math.round(totalCareerPoints * 10) / 10,
+        highestMatchScore: Math.round(highestMatchScore * 10) / 10,
+        averagePoints,
+        bestRank
+      },
+      squadHistory
+    });
+  } catch (error) {
+    console.error('Fetch profile error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to retrieve user profile.' });
+  }
+});
+
+/**
  * GET /api/matches/:id/my-squad
  * Returns user's squad for a specific match, if already submitted.
  */
